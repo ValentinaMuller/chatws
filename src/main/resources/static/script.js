@@ -1,8 +1,11 @@
 let stompClient = null;
+document.getElementById('serverIp').value = window.location.hostname;
 
 function connect() {
     const serverIp = document.getElementById('serverIp').value;
-    const socket = new SockJS('http://' + serverIp + ':8080/chat');
+    const endpoint = new URL('/chat', window.location.origin);
+    endpoint.hostname = serverIp;
+    const socket = new SockJS(endpoint.href);
 
     stompClient = Stomp.over(socket);
     
@@ -47,7 +50,7 @@ function sendMessage() {
     if (content.trim() === '') return;
     
      // Enviar mensaje
-    stompClient.send("/app/chat.sendMessage", {}, JSON.stringify({ 
+    stompClient.send("/app/chat.sendMessage", {'content-type': 'application/json'}, JSON.stringify({
         tipo: 'CHAT',
         usuario: username,
         contenido: content 
@@ -60,7 +63,9 @@ function showMessage(message) {
     const messages = document.getElementById('messages');
     const messageDiv = document.createElement('div');
     messageDiv.className = 'message';
-    messageDiv.innerHTML = '<strong>' + message.usuario + ':</strong> ' + message.contenido;
+    const author = document.createElement('strong');
+    author.textContent = message.usuario + ':';
+    messageDiv.append(author, ' ' + message.contenido);
     messages.appendChild(messageDiv);
     messages.scrollTop = messages.scrollHeight;
 }

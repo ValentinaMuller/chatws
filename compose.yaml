@@ -1,0 +1,23 @@
+services:
+  rabbitmq:
+    image: rabbitmq:3-management
+    hostname: chatws-rabbitmq
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USERNAME:-chatws}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD:-chatws-demo}
+    ports:
+      - "127.0.0.1:${RABBITMQ_AMQP_PORT:-5672}:5672"
+      - "127.0.0.1:${RABBITMQ_STOMP_PORT:-61613}:61613"
+      - "127.0.0.1:15672:15672"
+    volumes:
+      - ./docker/enabled_plugins:/etc/rabbitmq/enabled_plugins:ro
+      - rabbitmq-data:/var/lib/rabbitmq
+    healthcheck:
+      test: ["CMD-SHELL", "rabbitmq-diagnostics -q check_port_listener 61613 && rabbitmq-diagnostics -q check_port_listener 15672"]
+      interval: 10s
+      timeout: 10s
+      retries: 12
+      start_period: 20s
+
+volumes:
+  rabbitmq-data:
